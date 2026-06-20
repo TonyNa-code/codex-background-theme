@@ -1,0 +1,31 @@
+node_modules/
+.DS_Store
+
+# Local install state
+theme.json
+reapply.log
+launchd.err.log
+launchd.out.log
+.reapply.lock/
+restart-required.flag
+
+# Generated or private assets
+generated/
+backups/
+theme-tests/
+*.bak
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.gif
+*.heic
+*.avif
+
+# Extracted app internals and scratch files
+extracted/
+current-*
+verify-*
+header.json
+zh-CN.js
+image-assets.txt

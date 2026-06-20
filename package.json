@@ -1,0 +1,27 @@
+{
+  "name": "codex-background-theme",
+  "version": "0.1.0",
+  "description": "Local wallpaper and glass theme patcher for Codex Desktop.",
+  "license": "MIT",
+  "type": "commonjs",
+  "files": [
+    "LICENSE",
+    "README.md",
+    "SECURITY.md",
+    "scripts/",
+    "src/"
+  ],
+  "bin": {
+    "codex-background-theme": "src/patch-codex-background.js"
+  },
+  "scripts": {
+    "check:syntax": "node --check src/patch-codex-background.js && node --check src/asar-tools.js",
+    "check:installed": "node src/patch-codex-background.js --check"
+  },
+  "optionalDependencies": {
+    "resedit": "^3.0.2"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
