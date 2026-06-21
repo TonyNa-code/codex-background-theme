@@ -40,7 +40,11 @@ Use `unpacked` mode for large or 4K PNG files:
 node src/patch-codex-background.js --image "/path/to/wallpaper.png" --mode unpacked
 ```
 
-`stable` mode writes into an existing asset slot and is more size-sensitive.
+`stable` mode writes into an existing asset slot and is more size-sensitive. It
+is useful when you want a conservative patch shape, but the wallpaper may look
+softer because the image has to fit the built-in slot.
+
+For a fuller comparison, see [MODES.md](MODES.md).
 
 ## Position
 

@@ -20,7 +20,8 @@ It does not include wallpapers. Use images you have the right to use.
 - Adds a local PNG wallpaper to Codex Desktop.
 - Applies readable glass-style UI tokens to the sidebar, composer, settings,
   popovers, and common home screens.
-- Supports large PNG wallpapers with `unpacked` mode.
+- Offers two patching paths: high-quality `unpacked` mode and conservative
+  `stable` mode.
 - Can choose light or dark glass styling from basic image analysis.
 - Installs a macOS LaunchAgent that reapplies the patch after app updates.
 - Includes experimental Windows path detection and ASAR integrity handling.
@@ -63,6 +64,26 @@ The installer copies the patcher into:
 It also installs a LaunchAgent that checks whether the theme needs to be
 reapplied after Codex updates.
 
+## Choose A Patching Path
+
+Most users should start with `unpacked` mode. It keeps large wallpapers outside
+the ASAR payload and preserves image quality better.
+
+`stable` mode is the conservative path. It writes into an existing Codex image
+slot, which makes the patch easier to reason about and more controlled, but the
+wallpaper has to fit that slot. Large or detailed images may be resized or
+compressed more aggressively, so the result can look softer.
+
+```bash
+# Higher quality, better for large PNG or 4K images
+node src/patch-codex-background.js --image "/path/to/wallpaper.png" --mode unpacked
+
+# More conservative, but more limited by the built-in asset slot
+node src/patch-codex-background.js --image "/path/to/wallpaper.png" --mode stable
+```
+
+See [docs/MODES.md](docs/MODES.md) for the trade-offs.
+
 ## Quick Start: Windows
 
 Windows support is still experimental. Start with a manual run and keep a way to
@@ -100,7 +121,8 @@ node src/patch-codex-background.js --check
 
 - `unpacked`: recommended. Keeps large images outside the ASAR payload while
   marking the chosen asset as unpacked.
-- `stable`: writes into an existing PNG slot. Safer, but image size is limited.
+- `stable`: writes into an existing PNG slot. More conservative and controlled,
+  but image size is limited and quality can be lower.
 - `external`: references a local file URL.
 - `expanded`: experimental. Rebuilds the ASAR and is disabled unless explicitly
   allowed.

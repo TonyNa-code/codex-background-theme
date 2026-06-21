@@ -237,6 +237,7 @@ Common options:
 
 Notes:
   --mode unpacked is recommended for large PNG wallpapers.
+  --mode stable uses an existing image slot. It is more conservative but can reduce image quality.
   --surface auto chooses a light or dark glass style from image analysis.
   This tool patches the local Codex Desktop app bundle. Keep a reinstall path.`);
 }

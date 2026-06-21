@@ -12,6 +12,7 @@ PNG 图片设成 Codex 背景，同时让侧边栏、输入框、设置页、弹
 
 - 想给 Codex Desktop 换壁纸的人。
 - 想要透明或玻璃质感界面，但又不想牺牲文字可读性的人。
+- 想在高画质和更保守的补丁方式之间自己选择的人。
 - 想在 Codex 更新后自动补回主题的人。
 - 愿意接受“修改本机应用文件”这一前提的人。
 
@@ -79,8 +80,30 @@ node src/patch-codex-background.js --check
 - 暗色、夜景、紫蓝色多的图：先试 `--surface glass --text light`。
 - 不确定：用 `--surface auto`，让脚本根据图片亮度给一个起点。
 - 大图或 4K PNG：优先用 `--mode unpacked`。
+- 想要更保守、更可控的补丁方式：可以试 `--mode stable`，但图片会被限制在
+  Codex 现有资源槽里，画质和细节通常不如 `unpacked`。
 
 更细的说明见 [THEMING.md](THEMING.md)。
+
+## 两种补丁路线
+
+`unpacked` 是目前更推荐的路线，适合大 PNG、4K 图、细节多的壁纸。它会把图片
+放在 ASAR 外部的 unpacked 资源位置，因此不需要把大图硬塞进原本的小图片槽里，
+画质通常更好。
+
+`stable` 是更保守的路线。它复用 Codex 里已有的 PNG 资源槽，修改范围更容易
+理解，也更可控。但这个槽本身大小有限，所以大图需要被压缩或缩放，最后效果可能
+会更软一些，细节也可能少一点。
+
+```bash
+# 画质优先，适合大图
+node src/patch-codex-background.js --image "/path/to/wallpaper.png" --mode unpacked
+
+# 保守可控，但画质可能弱一点
+node src/patch-codex-background.js --image "/path/to/wallpaper.png" --mode stable
+```
+
+英文详细对比见 [MODES.md](MODES.md)。
 
 ## 注意事项
 
