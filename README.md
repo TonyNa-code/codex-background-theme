@@ -1,12 +1,29 @@
 # Codex Background Theme
 
-Local wallpaper and glass theme patcher for Codex Desktop.
+Custom wallpapers, glass UI themes, and update reapply hooks for Codex Desktop.
 
-This is an unofficial tool. It edits the installed Codex Desktop app bundle on
-your own machine, adds a local background image, and adjusts the main UI tokens
-used by the sidebar, composer, settings, popovers, and common home screens.
+[Simplified Chinese](docs/README.zh-CN.md) | [Japanese](docs/README.ja.md)
+
+Codex Desktop is useful. Its blank white or black window does not have to stay
+that way.
+
+This project patches your local Codex Desktop installation so you can use your
+own PNG wallpaper, keep the composer and sidebar readable, and reapply the
+theme after Codex updates. It is made for people searching for a Codex Desktop
+wallpaper, custom background, transparent UI, glass theme, or Electron ASAR
+theme patcher.
 
 It does not include wallpapers. Use images you have the right to use.
+
+## What It Does
+
+- Adds a local PNG wallpaper to Codex Desktop.
+- Applies readable glass-style UI tokens to the sidebar, composer, settings,
+  popovers, and common home screens.
+- Supports large PNG wallpapers with `unpacked` mode.
+- Can choose light or dark glass styling from basic image analysis.
+- Installs a macOS LaunchAgent that reapplies the patch after app updates.
+- Includes experimental Windows path detection and ASAR integrity handling.
 
 ## Status
 
@@ -15,6 +32,8 @@ It does not include wallpapers. Use images you have the right to use.
   PE-resource integrity adapter, but it still needs real Windows install/update
   testing.
 
+This is an unofficial project and is not affiliated with OpenAI.
+
 ## Requirements
 
 - Node.js 18 or newer.
@@ -22,12 +41,12 @@ It does not include wallpapers. Use images you have the right to use.
 - A local PNG wallpaper.
 - macOS: `codesign` and `PlistBuddy`, both provided by macOS.
 - Windows: `resedit` is used for Electron ASAR integrity resources. Run
-  `npm install` in this repo before patching on Windows.
+  `npm install` before patching on Windows.
 
-## macOS Quick Start
+## Quick Start: macOS
 
 ```bash
-git clone https://github.com/<owner>/codex-background-theme.git
+git clone https://github.com/TonyNa-code/codex-background-theme.git
 cd codex-background-theme
 npm install
 zsh scripts/install-macos.zsh --image "/path/to/wallpaper.png"
@@ -41,15 +60,16 @@ The installer copies the patcher into:
 ~/.codex/codex-background-theme
 ```
 
-It also installs a LaunchAgent that reapplies the patch after Codex updates.
+It also installs a LaunchAgent that checks whether the theme needs to be
+reapplied after Codex updates.
 
-## Windows Quick Start
+## Quick Start: Windows
 
 Windows support is still experimental. Start with a manual run and keep a way to
 reinstall Codex if the local patch does not apply cleanly:
 
 ```powershell
-git clone https://github.com/<owner>/codex-background-theme.git
+git clone https://github.com/TonyNa-code/codex-background-theme.git
 cd codex-background-theme
 npm install
 node .\src\patch-codex-background.js --mode unpacked --image "C:\Path\To\wallpaper.png"
@@ -57,22 +77,26 @@ node .\src\patch-codex-background.js --check
 ```
 
 If Codex is installed in a non-standard location, pass the app directory, exe,
-resources directory, or app.asar path:
+resources directory, or `app.asar` path:
 
 ```powershell
 node .\src\patch-codex-background.js --app-root "C:\Path\To\Codex" --mode unpacked --image "C:\Path\To\wallpaper.png"
 ```
 
-## Useful Options
+More notes are in [docs/WINDOWS.md](docs/WINDOWS.md).
+
+## Useful Commands
 
 ```bash
+node src/patch-codex-background.js --help
 node src/patch-codex-background.js --image "/path/to/wallpaper.png" --mode unpacked
 node src/patch-codex-background.js --image "/path/to/wallpaper.png" --surface light --text dark
 node src/patch-codex-background.js --image "/path/to/wallpaper.png" --surface glass --text light
+node src/patch-codex-background.js --analyze-image "/path/to/wallpaper.png"
 node src/patch-codex-background.js --check
 ```
 
-Modes:
+## Modes
 
 - `unpacked`: recommended. Keeps large images outside the ASAR payload while
   marking the chosen asset as unpacked.
@@ -81,12 +105,14 @@ Modes:
 - `expanded`: experimental. Rebuilds the ASAR and is disabled unless explicitly
   allowed.
 
-Surface styles:
+## Surface Styles
 
-- `auto`: chooses a bright or dark glass treatment from the image analysis.
-- `light`: light glass with dark text.
+- `auto`: chooses a bright or dark glass treatment from image analysis.
+- `light`: light glass with dark text, useful for bright wallpapers.
 - `glass`: dark translucent glass with light text.
 - `clear`, `dark`, `solid`, `minimal`: manual variants.
+
+See [docs/THEMING.md](docs/THEMING.md) for image and readability tips.
 
 ## Reapply
 
@@ -115,11 +141,25 @@ Use `--purge` to remove the local installed copy as well.
 To fully restore Codex, reinstall or update Codex Desktop after uninstalling the
 reapply hook.
 
-## Notes
+## Safety Notes
 
-- This project is not affiliated with OpenAI.
+- The patcher edits local app files and writes backups before changing them.
 - Codex updates can replace the patched app files. Reapply after an update when
   the theme disappears.
-- The patcher writes backups before changing app files.
-- Do not run it on work machines unless you are allowed to modify installed apps.
+- Do not run it on work machines unless you are allowed to modify installed
+  apps.
 - Do not publish screenshots or wallpapers you do not have rights to share.
+- When opening issues, redact local paths, account names, tokens, and private
+  filenames.
+
+## Project Layout
+
+```text
+src/                         patcher and small ASAR helper
+scripts/                     install, uninstall, and reapply scripts
+docs/                        translated guides and platform notes
+.github/                     issue templates and CI
+```
+
+If this saves you time, starring the repo helps other Codex Desktop users find
+it.

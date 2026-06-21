@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Privacy and asset hygiene
+    url: https://github.com/TonyNa-code/codex-background-theme/blob/main/docs/PRIVACY.md
+    about: Read this before sharing paths, screenshots, logs, or wallpapers.

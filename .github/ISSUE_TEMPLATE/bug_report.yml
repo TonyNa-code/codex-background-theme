@@ -1,0 +1,41 @@
+name: Bug report
+description: Report a patching, readability, or reapply problem.
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please redact local paths, usernames, tokens, private filenames, and any wallpaper you cannot share.
+  - type: input
+    id: platform
+    attributes:
+      label: Platform
+      description: macOS or Windows version.
+      placeholder: "macOS 15.x / Windows 11"
+    validations:
+      required: true
+  - type: input
+    id: codex-version
+    attributes:
+      label: Codex Desktop version
+      placeholder: "Version or update channel, if known"
+  - type: textarea
+    id: command
+    attributes:
+      label: Command
+      description: The command you ran. Redact private paths.
+      render: shell
+  - type: textarea
+    id: check-output
+    attributes:
+      label: Redacted check output
+      description: Output from `node src/patch-codex-background.js --check`, if available.
+      render: json
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: What did you expect, and what actually happened?
+    validations:
+      required: true

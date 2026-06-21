@@ -207,7 +207,7 @@ function parseArgs(argv = process.argv.slice(2)) {
     const key = rawKey.replace(/-([a-z])/g, (_, ch) => ch.toUpperCase());
     if (inlineValue !== undefined) {
       args[key] = inlineValue;
-    } else if (key === "check" || key === "analyze" || key === "testImages" || key === "saveConfig" || key === "noSaveConfig" || key === "dryRun" || key === "force") {
+    } else if (key === "check" || key === "analyze" || key === "testImages" || key === "saveConfig" || key === "noSaveConfig" || key === "dryRun" || key === "force" || key === "help") {
       args[key] = true;
     } else {
       args[key] = argv[i + 1];
@@ -215,6 +215,30 @@ function parseArgs(argv = process.argv.slice(2)) {
     }
   }
   return args;
+}
+
+function printHelp() {
+  console.log(`Codex Background Theme
+
+Usage:
+  node src/patch-codex-background.js --image <wallpaper.png> [options]
+  node src/patch-codex-background.js --check
+  node src/patch-codex-background.js --analyze-image <wallpaper.png>
+  node src/patch-codex-background.js --test-images <wallpaper-a.png> <wallpaper-b.png>
+
+Common options:
+  --app-root <path>       Codex app, exe, resources directory, or app.asar path
+  --mode <name>           unpacked, stable, external, or expanded
+  --surface <name>        auto, light, glass, clear, dark, solid, or minimal
+  --text <name>           auto, light, or dark
+  --position <value>      CSS background position, for example "center" or "42% 46%"
+  --target-width <px>     Prepared PNG width
+  --target-height <px>    Prepared PNG height
+
+Notes:
+  --mode unpacked is recommended for large PNG wallpapers.
+  --surface auto chooses a light or dark glass style from image analysis.
+  This tool patches the local Codex Desktop app bundle. Keep a reinstall path.`);
 }
 
 function pathExists(filePath) {
@@ -1752,7 +1776,9 @@ function main() {
 }
 
 const args = parseArgs();
-if (args.check) {
+if (args.help) {
+  printHelp();
+} else if (args.check) {
   const result = validateInstalled();
   console.log(JSON.stringify(result, null, 2));
   if (!result.ok) {

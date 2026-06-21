@@ -1,13 +1,37 @@
 {
   "name": "codex-background-theme",
   "version": "0.1.0",
-  "description": "Local wallpaper and glass theme patcher for Codex Desktop.",
+  "description": "Custom wallpapers, glass UI themes, and update reapply hooks for Codex Desktop.",
   "license": "MIT",
   "type": "commonjs",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TonyNa-code/codex-background-theme.git"
+  },
+  "bugs": {
+    "url": "https://github.com/TonyNa-code/codex-background-theme/issues"
+  },
+  "homepage": "https://github.com/TonyNa-code/codex-background-theme#readme",
+  "keywords": [
+    "codex",
+    "codex-desktop",
+    "openai-codex",
+    "wallpaper",
+    "custom-background",
+    "desktop-theme",
+    "glass-theme",
+    "electron",
+    "asar",
+    "macos",
+    "windows"
+  ],
   "files": [
     "LICENSE",
     "README.md",
     "SECURITY.md",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "docs/",
     "scripts/",
     "src/"
   ],
@@ -15,8 +39,10 @@
     "codex-background-theme": "src/patch-codex-background.js"
   },
   "scripts": {
+    "check": "npm run check:syntax && npm run check:package",
     "check:syntax": "node --check src/patch-codex-background.js && node --check src/asar-tools.js",
-    "check:installed": "node src/patch-codex-background.js --check"
+    "check:installed": "node src/patch-codex-background.js --check",
+    "check:package": "npm pack --dry-run --json"
   },
   "optionalDependencies": {
     "resedit": "^3.0.2"
