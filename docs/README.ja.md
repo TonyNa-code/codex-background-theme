@@ -46,6 +46,19 @@ zsh scripts/install-macos.zsh --image "/path/to/wallpaper.png"
 
 また、Codex の更新後にテーマを再適用するための LaunchAgent も登録します。
 
+Codex が再適用の完了前に起動してしまった場合、現在のウィンドウは古い背景の
+ままになることがあります。通常は macOS の通知だけを出しますが、自動で Codex
+を再起動したい場合は次のようにインストールできます。
+
+```bash
+zsh scripts/install-macos.zsh --image "/path/to/wallpaper.png" --auto-restart
+```
+
+個人用の環境では便利ですが、入力途中の内容を残したい場合は有効にしないで
+ください。
+
+更新後の再適用と再起動の詳細は [REAPPLY.md](REAPPLY.md) にまとめています。
+
 ## Windows クイックスタート
 
 Windows 対応はまだ実験的です。まずは手動で実行し、うまくいかなかった場合

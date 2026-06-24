@@ -16,12 +16,39 @@ ASAR="$APP_ROOT/Contents/Resources/app.asar"
 PLIST="$APP_ROOT/Contents/Info.plist"
 LOG="$TOOL_DIR/reapply.log"
 LOCKDIR="$TOOL_DIR/.reapply.lock"
+RESTART_FLAG="$TOOL_DIR/restart-required.flag"
+FORCE=0
+AUTO_RESTART="${CODEX_BACKGROUND_AUTO_RESTART:-0}"
 
 mkdir -p "$TOOL_DIR"
 
 log() {
   print -r -- "[$(/bin/date '+%Y-%m-%d %H:%M:%S')] $*" >> "$LOG"
 }
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --agent)
+      shift
+      ;;
+    --force)
+      FORCE=1
+      shift
+      ;;
+    --auto-restart)
+      AUTO_RESTART=1
+      shift
+      ;;
+    --no-auto-restart)
+      AUTO_RESTART=0
+      shift
+      ;;
+    *)
+      log "Ignoring unknown option: $1"
+      shift
+      ;;
+  esac
+done
 
 find_node() {
   for candidate in /opt/homebrew/bin/node /usr/local/bin/node /usr/bin/node; do
@@ -35,13 +62,13 @@ find_node() {
 
 wait_until_app_is_stable() {
   local last="" current=""
-  for _ in {1..12}; do
+  for _ in {1..20}; do
     current="$(/usr/bin/stat -f '%m:%z' "$ASAR" "$PLIST" 2>/dev/null | /usr/bin/shasum -a 256 2>/dev/null || true)"
     if [[ -n "$current" && "$current" == "$last" ]]; then
       return 0
     fi
     last="$current"
-    /bin/sleep 2
+    /bin/sleep 1
   done
   return 1
 }
@@ -62,6 +89,83 @@ cleanup_backups() {
       [[ -n "$old" ]] && /bin/rm -f "$old"
     done <<< "$old_files"
   done
+}
+
+current_codex_pid() {
+  local exe="$APP_ROOT/Contents/MacOS/Codex" pid command
+  /usr/bin/pgrep -x Codex 2>/dev/null | while IFS= read -r pid; do
+    command="$(/bin/ps -p "$pid" -o command= 2>/dev/null || true)"
+    if [[ "$command" == "$exe"* ]]; then
+      print -r -- "$pid"
+      return 0
+    fi
+  done | /usr/bin/head -n 1
+}
+
+codex_start_epoch() {
+  local pid="$1" start_text
+  [[ -n "$pid" ]] || return 1
+  start_text="$(/bin/ps -p "$pid" -o lstart= 2>/dev/null | /usr/bin/sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+  [[ -n "$start_text" ]] || return 1
+  /bin/date -j -f '%a %b %e %T %Y' "$start_text" '+%s' 2>/dev/null
+}
+
+notify_restart_needed() {
+  /usr/bin/osascript -e 'display notification "The background patch is back on disk. Restart Codex to load it in the current window." with title "Codex background restored"' >/dev/null 2>&1 || true
+}
+
+restart_codex() {
+  log "Auto-restarting Codex so the refreshed background is loaded"
+  /usr/bin/osascript -e 'tell application "Codex" to quit' >/dev/null 2>&1 || true
+  for _ in {1..30}; do
+    if [[ -z "$(current_codex_pid)" ]]; then
+      break
+    fi
+    /bin/sleep 1
+  done
+  /usr/bin/open "$APP_ROOT" >/dev/null 2>&1 || true
+}
+
+restart_completion_epoch() {
+  [[ -f "$RESTART_FLAG" ]] || return 1
+  /usr/bin/sed -n 's/.*completed_epoch=\([0-9][0-9]*\).*/\1/p' "$RESTART_FLAG" | /usr/bin/head -n 1
+}
+
+clear_restart_flag_if_resolved() {
+  local pid start_epoch completed_epoch
+  [[ -f "$RESTART_FLAG" ]] || return 0
+  pid="$(current_codex_pid)"
+  if [[ -z "$pid" ]]; then
+    /bin/rm -f "$RESTART_FLAG"
+    return 0
+  fi
+  completed_epoch="$(restart_completion_epoch || true)"
+  start_epoch="$(codex_start_epoch "$pid" || true)"
+  if [[ -n "$completed_epoch" && -n "$start_epoch" && "$start_epoch" -gt "$completed_epoch" ]]; then
+    /bin/rm -f "$RESTART_FLAG"
+  fi
+}
+
+notice_if_running_before_patch() {
+  local completed_epoch="$1" pid start_epoch
+  pid="$(current_codex_pid)"
+  if [[ -z "$pid" ]]; then
+    /bin/rm -f "$RESTART_FLAG"
+    return 0
+  fi
+  start_epoch="$(codex_start_epoch "$pid" || true)"
+  [[ -n "$start_epoch" ]] || return 0
+  if (( start_epoch < completed_epoch )); then
+    print -r -- "pid=$pid started_epoch=$start_epoch completed_epoch=$completed_epoch" > "$RESTART_FLAG"
+    log "Codex process $pid started before reapply completed; restart required"
+    if [[ "$AUTO_RESTART" == "1" || "$AUTO_RESTART" == "true" || "$AUTO_RESTART" == "yes" ]]; then
+      restart_codex
+    else
+      notify_restart_needed
+    fi
+  else
+    /bin/rm -f "$RESTART_FLAG"
+  fi
 }
 
 if [[ -d "$LOCKDIR" ]]; then
@@ -89,7 +193,8 @@ if [[ ! -f "$ASAR" ]]; then
   exit 0
 fi
 
-if [[ "${1:-}" != "--force" ]] && is_currently_patched "$NODE"; then
+if (( ! FORCE )) && is_currently_patched "$NODE"; then
+  clear_restart_flag_if_resolved
   log "Background patch already current, skipping"
   exit 0
 fi
@@ -100,4 +205,6 @@ log "Reapplying Codex background patch"
 /usr/bin/codesign --verify --deep --strict --verbose=1 "$APP_ROOT" >> "$LOG" 2>&1
 "$NODE" "$PATCH_SCRIPT" --app-root "$APP_ROOT" --check >> "$LOG" 2>&1
 cleanup_backups
+completed_epoch="$(/bin/date '+%s')"
 log "Reapply complete"
+notice_if_running_before_patch "$completed_epoch"

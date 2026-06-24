@@ -62,7 +62,21 @@ The installer copies the patcher into:
 ```
 
 It also installs a LaunchAgent that checks whether the theme needs to be
-reapplied after Codex updates.
+reapplied after Codex updates. The LaunchAgent watches the Codex app bundle and
+also runs a short fallback interval, so updates are usually repaired quickly.
+
+If Codex is opened before the reapply step finishes, the current window may
+still show the old background until Codex restarts. If you want the helper to do
+that restart for you, install with:
+
+```bash
+zsh scripts/install-macos.zsh --image "/path/to/wallpaper.png" --auto-restart
+```
+
+Without `--auto-restart`, the helper only sends a macOS notification when a
+restart is needed.
+
+See [docs/REAPPLY.md](docs/REAPPLY.md) for the update and restart behavior.
 
 ## Choose A Patching Path
 
@@ -142,6 +156,13 @@ macOS:
 
 ```bash
 zsh scripts/codex-background-reapply.zsh --force
+```
+
+To let the helper restart Codex when the app started before the refreshed files
+were written:
+
+```bash
+zsh scripts/codex-background-reapply.zsh --force --auto-restart
 ```
 
 Windows:

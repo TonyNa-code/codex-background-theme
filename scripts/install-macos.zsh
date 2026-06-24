@@ -8,6 +8,7 @@ IMAGE=""
 MODE="unpacked"
 INSTALL_AGENT=1
 LABEL="com.codex-background-theme.reapply"
+AUTO_RESTART=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -25,6 +26,14 @@ while [[ $# -gt 0 ]]; do
       ;;
     --no-agent)
       INSTALL_AGENT=0
+      shift
+      ;;
+    --auto-restart)
+      AUTO_RESTART=1
+      shift
+      ;;
+    --no-auto-restart)
+      AUTO_RESTART=0
       shift
       ;;
     *)
@@ -77,17 +86,30 @@ if (( INSTALL_AGENT )); then
   <string>${LABEL}</string>
   <key>ProgramArguments</key>
   <array>
+    <string>/bin/zsh</string>
     <string>${INSTALL_DIR}/codex-background-reapply.zsh</string>
+    <string>--agent</string>
   </array>
   <key>EnvironmentVariables</key>
   <dict>
     <key>CODEX_APP_ROOT</key>
     <string>${APP_ROOT}</string>
+    <key>CODEX_BACKGROUND_AUTO_RESTART</key>
+    <string>${AUTO_RESTART}</string>
   </dict>
   <key>RunAtLoad</key>
   <true/>
+  <key>WatchPaths</key>
+  <array>
+    <string>${APP_ROOT}</string>
+    <string>${APP_ROOT}/Contents/Resources</string>
+    <string>${APP_ROOT}/Contents/Resources/app.asar</string>
+    <string>${APP_ROOT}/Contents/Info.plist</string>
+  </array>
   <key>StartInterval</key>
-  <integer>1800</integer>
+  <integer>60</integer>
+  <key>ThrottleInterval</key>
+  <integer>5</integer>
   <key>StandardOutPath</key>
   <string>${INSTALL_DIR}/launchd.out.log</string>
   <key>StandardErrorPath</key>
@@ -97,7 +119,13 @@ if (( INSTALL_AGENT )); then
 EOF
   /bin/chmod 644 "$PLIST"
   /bin/launchctl bootout "gui/$UID" "$PLIST" 2>/dev/null || true
+  /bin/launchctl bootout "gui/$UID/com.na.codex-background-reapply" 2>/dev/null || true
+  /bin/rm -f "$HOME/Library/LaunchAgents/com.na.codex-background-reapply.plist"
   /bin/launchctl bootstrap "gui/$UID" "$PLIST"
 fi
 
-print -r -- "Installed. Fully quit Codex and open it again."
+if (( AUTO_RESTART )); then
+  print -r -- "Installed with auto restart. Codex may restart once after an update to load the refreshed background."
+else
+  print -r -- "Installed. Fully quit Codex and open it again."
+fi

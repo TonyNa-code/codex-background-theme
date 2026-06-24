@@ -43,6 +43,18 @@ zsh scripts/install-macos.zsh --image "/path/to/wallpaper.png"
 
 同时会安装一个 LaunchAgent，用来在 Codex 更新后尝试自动补回主题。
 
+如果 Codex 已经抢在补丁完成前启动，当前窗口可能还是旧背景，需要重启 Codex 才会
+读取新文件。默认情况下脚本会发系统通知提醒你。如果你想让它自动完成这次重启，
+可以安装时加上：
+
+```bash
+zsh scripts/install-macos.zsh --image "/path/to/wallpaper.png" --auto-restart
+```
+
+这个选项适合个人电脑；如果你担心当前窗口里有没发出的输入，就不要开启它。
+
+更新后自动补丁和重启行为的细节见 [REAPPLY.md](REAPPLY.md)。
+
 ## Windows 快速开始
 
 Windows 目前仍是实验支持。建议先手动运行，并确保你知道如何重新安装
