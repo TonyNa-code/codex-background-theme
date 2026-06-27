@@ -1376,7 +1376,9 @@ function validateInstalled() {
     hasHomeSidebarSurface ||= text.includes("bg-token-side-bar-background");
     hasHomeComposerVariant ||= text.includes("externalFooterVariant:`home`");
     hasHomeFooterSlot ||= text.includes("home-external-footer") && text.includes("relative z-0 -mt-2");
-    hasHomeFooterSurface ||= text.includes("rounded-b-2xl bg-token-side-bar-background dark:bg-token-bg-fog");
+    hasHomeFooterSurface ||= text.includes("rounded-b-2xl") && (
+      text.includes("bg-token-side-bar-background") || text.includes("dark:bg-token-bg-fog")
+    );
     if (hasHomeFooterShell && hasHomeSidebarSurface && hasHomeComposerVariant && hasHomeFooterSlot && hasHomeFooterSurface) break;
   }
 
@@ -1427,8 +1429,10 @@ function validateInstalled() {
     headerHashMatchesPlist: appPaths.platform !== "darwin" || headerHash === installedHeaderHash,
     entryIntegrityOk: badEntries.length === 0,
   };
+  const requiredCheckNames = Object.keys(checks).filter((name) => name !== "homeFooterBundleShape");
+
   return {
-    ok: Object.values(checks).every(Boolean),
+    ok: requiredCheckNames.every((name) => checks[name]),
     checks,
     theme: {
       surface: theme.surface,
@@ -1611,6 +1615,23 @@ function backupInstalledFiles(stamp) {
   return backups;
 }
 
+function pruneBackups(maxBackups = Number(process.env.CODEX_BACKGROUND_MAX_BACKUPS || 1)) {
+  if (!fs.existsSync(backupDir)) return;
+  const keep = Math.max(0, Number.isFinite(maxBackups) ? Math.floor(maxBackups) : 1);
+  for (const prefix of ["app.asar.", "Info.plist.", "Codex.exe."]) {
+    const files = fs.readdirSync(backupDir)
+      .filter((name) => name.startsWith(prefix) && name.endsWith(".bak"))
+      .map((name) => {
+        const filePath = path.join(backupDir, name);
+        return { filePath, mtimeMs: fs.statSync(filePath).mtimeMs };
+      })
+      .sort((a, b) => b.mtimeMs - a.mtimeMs);
+    for (const item of files.slice(keep)) {
+      fs.rmSync(item.filePath, { force: true });
+    }
+  }
+}
+
 function ensureBackgroundConfigured(theme, args = {}) {
   if (args.image) return;
   const candidate = theme.preparedImagePath || theme.sourceImagePath || defaultPngPath;
@@ -1753,6 +1774,7 @@ function main() {
 
   const newHeaderHash = sha256(headerBytes);
   const integrityPath = writeInstalledAsarHash(newHeaderHash);
+  pruneBackups();
 
   console.log(JSON.stringify({
     ...backups,

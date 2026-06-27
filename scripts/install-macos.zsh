@@ -69,6 +69,11 @@ mkdir -p "$INSTALL_DIR"
 /bin/cp "$REPO_DIR/src/asar-tools.js" "$INSTALL_DIR/"
 /bin/cp "$REPO_DIR/scripts/codex-background-reapply.zsh" "$INSTALL_DIR/"
 /bin/chmod +x "$INSTALL_DIR/codex-background-reapply.zsh"
+/bin/rm -rf "$INSTALL_DIR/official" 2>/dev/null || true
+if [[ -d "$INSTALL_DIR/theme-tests" ]]; then
+  /usr/bin/find "$INSTALL_DIR/theme-tests" -type f -mtime +7 -delete 2>/dev/null || true
+  /usr/bin/find "$INSTALL_DIR/theme-tests" -type d -empty -delete 2>/dev/null || true
+fi
 
 "$NODE" "$INSTALL_DIR/patch-codex-background.js" --app-root "$APP_ROOT" --mode "$MODE" --image "$IMAGE"
 /usr/bin/codesign --force --deep --sign - "$APP_ROOT"
@@ -107,7 +112,7 @@ if (( INSTALL_AGENT )); then
     <string>${APP_ROOT}/Contents/Info.plist</string>
   </array>
   <key>StartInterval</key>
-  <integer>60</integer>
+  <integer>600</integer>
   <key>ThrottleInterval</key>
   <integer>5</integer>
   <key>StandardOutPath</key>

@@ -7,9 +7,10 @@ On macOS, `scripts/install-macos.zsh` installs a LaunchAgent that:
 
 - runs at login,
 - watches the Codex app bundle, `app.asar`, and `Info.plist`,
-- runs a 60-second fallback check,
+- runs a 10-minute fallback check,
 - waits until the app bundle stops changing before patching,
 - verifies the patch and app signature after writing files.
+- rotates the helper log and keeps only a small number of large app backups.
 
 ## Why A Second Restart Can Be Needed
 

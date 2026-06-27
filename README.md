@@ -63,7 +63,8 @@ The installer copies the patcher into:
 
 It also installs a LaunchAgent that checks whether the theme needs to be
 reapplied after Codex updates. The LaunchAgent watches the Codex app bundle and
-also runs a short fallback interval, so updates are usually repaired quickly.
+also runs a low-frequency fallback check, so updates are repaired without a
+busy background loop.
 
 If Codex is opened before the reapply step finishes, the current window may
 still show the old background until Codex restarts. If you want the helper to do
